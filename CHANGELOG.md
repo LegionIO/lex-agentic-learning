@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-03-18
+
+### Changed
+- Enforce SUBSTRATE_TYPES validation in FermentationEngine#create_substrate (returns nil for invalid type)
+- Enforce CATALYST_TYPES validation in FermentationEngine#catalyze (returns nil for invalid catalyst)
+
 ## [0.1.0] - 2026-03-18
 
 ### Added

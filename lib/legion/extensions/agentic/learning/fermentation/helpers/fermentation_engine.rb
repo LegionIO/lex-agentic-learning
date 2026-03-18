@@ -15,6 +15,8 @@ module Legion
               end
 
               def create_substrate(substrate_type:, domain:, content: '', potency: nil, volatility: nil)
+                return nil unless SUBSTRATE_TYPES.include?(substrate_type.to_sym)
+
                 sub = Substrate.new(substrate_type: substrate_type, domain: domain, content: content,
                                     potency: potency, volatility: volatility)
                 @substrates[sub.id] = sub
@@ -33,6 +35,8 @@ module Legion
               end
 
               def catalyze(substrate_id:, catalyst_type:)
+                return nil unless CATALYST_TYPES.include?(catalyst_type.to_sym)
+
                 sub = @substrates[substrate_id]
                 return nil unless sub
 

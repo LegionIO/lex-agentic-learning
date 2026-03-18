@@ -7,7 +7,7 @@
 Domain consolidation gem for learning, adaptation, and knowledge acquisition. Bundles 14 source extensions into one loadable unit under `Legion::Extensions::Agentic::Learning`.
 
 **Gem**: `lex-agentic-learning`
-**Version**: 0.1.0
+**Version**: 0.1.1
 **Namespace**: `Legion::Extensions::Agentic::Learning`
 
 ## Sub-Modules
@@ -37,6 +37,6 @@ Domain consolidation gem for learning, adaptation, and knowledge acquisition. Bu
 
 ```bash
 bundle install
-bundle exec rspec        # 1312 examples, 0 failures
+bundle exec rspec        # 1316 examples, 0 failures
 bundle exec rubocop      # 0 offenses
 ```

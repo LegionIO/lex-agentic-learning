@@ -26,6 +26,18 @@ RSpec.describe Legion::Extensions::Agentic::Learning::Fermentation::Helpers::Fer
       engine.create_substrate(substrate_type: :raw_idea, domain: :emotional)
       expect(engine.fermentation_report[:total_batches]).to eq(2)
     end
+
+    it 'rejects invalid substrate_type' do
+      expect(engine.create_substrate(substrate_type: :telekinesis, domain: :cognitive)).to be_nil
+    end
+
+    it 'accepts all valid SUBSTRATE_TYPES' do
+      constants = Legion::Extensions::Agentic::Learning::Fermentation::Helpers::Constants
+      constants::SUBSTRATE_TYPES.each do |st|
+        result = engine.create_substrate(substrate_type: st, domain: :cognitive)
+        expect(result).not_to be_nil
+      end
+    end
   end
 
   describe '#ferment' do
@@ -49,6 +61,20 @@ RSpec.describe Legion::Extensions::Agentic::Learning::Fermentation::Helpers::Fer
 
     it 'returns nil for unknown substrate' do
       expect(engine.catalyze(substrate_id: 'x', catalyst_type: :analogy)).to be_nil
+    end
+
+    it 'rejects invalid catalyst_type' do
+      sub = engine.create_substrate(substrate_type: :raw_idea, domain: :cognitive)
+      expect(engine.catalyze(substrate_id: sub.id, catalyst_type: :magic)).to be_nil
+    end
+
+    it 'accepts all valid CATALYST_TYPES' do
+      constants = Legion::Extensions::Agentic::Learning::Fermentation::Helpers::Constants
+      sub = engine.create_substrate(substrate_type: :raw_idea, domain: :cognitive, potency: 0.1)
+      constants::CATALYST_TYPES.each do |ct|
+        result = engine.catalyze(substrate_id: sub.id, catalyst_type: ct)
+        expect(result).not_to be_nil
+      end
     end
   end
 

@@ -29,6 +29,11 @@ Domain consolidation gem for learning, adaptation, and knowledge acquisition. Bu
 | `Learning::Chrysalis` | `lex-cognitive-chrysalis` | Metamorphic state change — transformation through withdrawal |
 | `Learning::Catalyst` | `lex-cognitive-catalyst` | Accelerating cognitive transformation |
 
+## Actors
+
+- `Learning::Hebbian::Actors::Decay` — interval actor, decays Hebbian assembly connection strength
+- `Learning::PreferenceLearning::Actors::Decay` — interval actor, decays older preference observations
+
 ## Tick Integration
 
 `Learning::Curiosity` maps to the `working_memory_integration` tick phase via `detect_gaps`.

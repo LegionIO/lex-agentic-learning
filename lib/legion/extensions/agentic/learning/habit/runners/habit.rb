@@ -11,10 +11,10 @@ module Legion
                                                           Legion::Extensions::Helpers.const_defined?(:Lex)
 
               def observe_action(action:, context: {}, **)
-                Legion::Logging.debug "[habit] observe_action: action=#{action} context=#{context}"
+                log.debug "[habit] observe_action: action=#{action} context=#{context}"
                 habit_store.record_action(action, context: context)
                 detected = habit_store.detect_patterns
-                Legion::Logging.info "[habit] patterns detected: #{detected.size}" unless detected.empty?
+                log.info "[habit] patterns detected: #{detected.size}" unless detected.empty?
                 {
                   recorded:            true,
                   action:              action,
@@ -25,7 +25,7 @@ module Legion
 
               def suggest_habit(context: {}, **)
                 matches = habit_store.find_matching(context: context)
-                Legion::Logging.debug "[habit] suggest_habit: context=#{context} matches=#{matches.size}"
+                log.debug "[habit] suggest_habit: context=#{context} matches=#{matches.size}"
                 if matches.empty?
                   { suggestion: nil, reason: :no_matching_habits }
                 else
@@ -43,19 +43,19 @@ module Legion
                 return { error: :not_found } unless habit
 
                 habit.record_execution(success: success)
-                Legion::Logging.debug "[habit] execute_habit: id=#{id} success=#{success} maturity=#{habit.maturity}"
+                log.debug "[habit] execute_habit: id=#{id} success=#{success} maturity=#{habit.maturity}"
                 { executed: true, habit: habit.to_h, cognitive_cost: habit.cognitive_cost }
               end
 
               def decay_habits(**)
                 removed = habit_store.decay_all
-                Legion::Logging.debug "[habit] decay_habits: removed=#{removed}"
+                log.debug "[habit] decay_habits: removed=#{removed}"
                 { decayed: true, removed_count: removed }
               end
 
               def merge_habits(**)
                 merged = habit_store.merge_similar
-                Legion::Logging.debug "[habit] merge_habits: merged=#{merged}"
+                log.debug "[habit] merge_habits: merged=#{merged}"
                 { merged_count: merged }
               end
 
@@ -65,7 +65,7 @@ module Legion
 
               def habit_repertoire(maturity: nil, limit: 20, **)
                 habits = maturity ? habit_store.by_maturity(maturity.to_sym) : habit_store.habits.values
-                Legion::Logging.debug "[habit] habit_repertoire: maturity=#{maturity} total=#{habits.size}"
+                log.debug "[habit] habit_repertoire: maturity=#{maturity} total=#{habits.size}"
                 {
                   habits: habits.sort_by { |h| -h.strength }.first(limit).map(&:to_h),
                   total:  habits.size

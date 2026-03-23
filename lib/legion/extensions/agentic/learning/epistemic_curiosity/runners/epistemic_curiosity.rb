@@ -13,9 +13,9 @@ module Legion
               def create_gap(question:, domain:, gap_type: :factual, urgency: Helpers::Constants::DEFAULT_URGENCY, **)
                 result = engine.create_gap(question: question, domain: domain, gap_type: gap_type, urgency: urgency)
                 if result[:created]
-                  Legion::Logging.info "[epistemic_curiosity] gap created: id=#{result[:gap][:id]} domain=#{domain} type=#{gap_type}"
+                  log.info "[epistemic_curiosity] gap created: id=#{result[:gap][:id]} domain=#{domain} type=#{gap_type}"
                 else
-                  Legion::Logging.debug "[epistemic_curiosity] gap not created: reason=#{result[:reason]}"
+                  log.debug "[epistemic_curiosity] gap not created: reason=#{result[:reason]}"
                 end
                 result
               end
@@ -24,9 +24,9 @@ module Legion
                 result = engine.explore_gap(gap_id: gap_id)
                 if result[:found]
                   gap = result[:gap]
-                  Legion::Logging.debug "[epistemic_curiosity] explore: id=#{gap_id} explorations=#{gap[:explorations]} urgency=#{gap[:urgency]}"
+                  log.debug "[epistemic_curiosity] explore: id=#{gap_id} explorations=#{gap[:explorations]} urgency=#{gap[:urgency]}"
                 else
-                  Legion::Logging.debug "[epistemic_curiosity] explore: id=#{gap_id} not found"
+                  log.debug "[epistemic_curiosity] explore: id=#{gap_id} not found"
                 end
                 result
               end
@@ -35,9 +35,9 @@ module Legion
                 result = engine.satisfy_gap(gap_id: gap_id, amount: amount)
                 if result[:found]
                   gap = result[:gap]
-                  Legion::Logging.debug "[epistemic_curiosity] satisfy: id=#{gap_id} satisfaction=#{gap[:satisfaction]} resolved=#{gap[:resolved]}"
+                  log.debug "[epistemic_curiosity] satisfy: id=#{gap_id} satisfaction=#{gap[:satisfaction]} resolved=#{gap[:resolved]}"
                 else
-                  Legion::Logging.debug "[epistemic_curiosity] satisfy: id=#{gap_id} not found"
+                  log.debug "[epistemic_curiosity] satisfy: id=#{gap_id} not found"
                 end
                 result
               end
@@ -45,40 +45,40 @@ module Legion
               def resolve_gap(gap_id:, **)
                 result = engine.resolve_gap(gap_id: gap_id)
                 if result[:found]
-                  Legion::Logging.info "[epistemic_curiosity] resolved: id=#{gap_id}"
+                  log.info "[epistemic_curiosity] resolved: id=#{gap_id}"
                 else
-                  Legion::Logging.debug "[epistemic_curiosity] resolve: id=#{gap_id} not found"
+                  log.debug "[epistemic_curiosity] resolve: id=#{gap_id} not found"
                 end
                 result
               end
 
               def most_urgent_gaps(limit: 5, **)
                 gaps = engine.most_urgent(limit: limit)
-                Legion::Logging.debug "[epistemic_curiosity] most_urgent: limit=#{limit} returned=#{gaps.size}"
+                log.debug "[epistemic_curiosity] most_urgent: limit=#{limit} returned=#{gaps.size}"
                 { gaps: gaps.map(&:to_h), count: gaps.size }
               end
 
               def gaps_by_domain(domain:, **)
                 gaps = engine.by_domain(domain)
-                Legion::Logging.debug "[epistemic_curiosity] by_domain: domain=#{domain} count=#{gaps.size}"
+                log.debug "[epistemic_curiosity] by_domain: domain=#{domain} count=#{gaps.size}"
                 { gaps: gaps.map(&:to_h), count: gaps.size, domain: domain }
               end
 
               def gaps_by_type(gap_type:, **)
                 gaps = engine.by_type(gap_type)
-                Legion::Logging.debug "[epistemic_curiosity] by_type: gap_type=#{gap_type} count=#{gaps.size}"
+                log.debug "[epistemic_curiosity] by_type: gap_type=#{gap_type} count=#{gaps.size}"
                 { gaps: gaps.map(&:to_h), count: gaps.size, gap_type: gap_type }
               end
 
               def decay_gaps(**)
                 count = engine.decay_all
-                Legion::Logging.debug "[epistemic_curiosity] decay cycle: gaps_updated=#{count}"
+                log.debug "[epistemic_curiosity] decay cycle: gaps_updated=#{count}"
                 { decayed: count }
               end
 
               def curiosity_report(**)
                 report = engine.curiosity_report
-                Legion::Logging.debug "[epistemic_curiosity] report: open=#{report[:open_gaps]} debt=#{report[:information_debt]}"
+                log.debug "[epistemic_curiosity] report: open=#{report[:open_gaps]} debt=#{report[:information_debt]}"
                 report
               end
 

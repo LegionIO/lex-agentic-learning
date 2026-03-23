@@ -12,8 +12,8 @@ module Legion
 
               def create_skill(name:, domain:, **)
                 skill = engine.create_skill(name: name, domain: domain)
-                Legion::Logging.debug "[procedural_learning] created skill=#{name} " \
-                                      "domain=#{domain} id=#{skill.id[0..7]}"
+                log.debug "[procedural_learning] created skill=#{name} " \
+                          "domain=#{domain} id=#{skill.id[0..7]}"
                 { success: true, skill_id: skill.id, name: name, domain: domain,
                   proficiency: skill.proficiency, stage: skill.stage }
               end
@@ -26,59 +26,59 @@ module Legion
 
                 return result unless result.is_a?(Helpers::Production)
 
-                Legion::Logging.debug '[procedural_learning] production added ' \
-                                      "skill=#{skill_id[0..7]} condition=#{condition}"
+                log.debug '[procedural_learning] production added ' \
+                          "skill=#{skill_id[0..7]} condition=#{condition}"
                 { success: true, production_id: result.id, skill_id: skill_id }
               end
 
               def practice_skill(skill_id:, success:, **)
                 result = engine.practice_skill(skill_id: skill_id, success: success)
-                Legion::Logging.debug "[procedural_learning] practice skill=#{skill_id[0..7]} " \
-                                      "success=#{success} proficiency=#{result[:proficiency]&.round(3)}"
+                log.debug "[procedural_learning] practice skill=#{skill_id[0..7]} " \
+                          "success=#{success} proficiency=#{result[:proficiency]&.round(3)}"
                 result
               end
 
               def execute_production(production_id:, success:, **)
                 result = engine.execute_production(production_id: production_id, success: success)
-                Legion::Logging.debug "[procedural_learning] execute production=#{production_id[0..7]} " \
-                                      "success=#{success}"
+                log.debug "[procedural_learning] execute production=#{production_id[0..7]} " \
+                          "success=#{success}"
                 result
               end
 
               def skill_assessment(skill_id:, **)
                 result = engine.skill_assessment(skill_id: skill_id)
-                Legion::Logging.debug "[procedural_learning] assessment skill=#{skill_id[0..7]}"
+                log.debug "[procedural_learning] assessment skill=#{skill_id[0..7]}"
                 result
               end
 
               def compiled_skills(**)
                 skills = engine.compiled_skills
-                Legion::Logging.debug "[procedural_learning] compiled count=#{skills.size}"
+                log.debug "[procedural_learning] compiled count=#{skills.size}"
                 { success: true, skills: skills.map(&:to_h), count: skills.size }
               end
 
               def autonomous_skills(**)
                 skills = engine.autonomous_skills
-                Legion::Logging.debug "[procedural_learning] autonomous count=#{skills.size}"
+                log.debug "[procedural_learning] autonomous count=#{skills.size}"
                 { success: true, skills: skills.map(&:to_h), count: skills.size }
               end
 
               def most_practiced_skills(limit: 5, **)
                 skills = engine.most_practiced(limit: limit)
-                Legion::Logging.debug "[procedural_learning] most_practiced limit=#{limit}"
+                log.debug "[procedural_learning] most_practiced limit=#{limit}"
                 { success: true, skills: skills.map(&:to_h), count: skills.size }
               end
 
               def update_procedural_learning(**)
                 engine.decay_all
                 pruned = engine.prune_stale
-                Legion::Logging.debug "[procedural_learning] decay+prune pruned=#{pruned}"
+                log.debug "[procedural_learning] decay+prune pruned=#{pruned}"
                 { success: true, pruned: pruned }
               end
 
               def procedural_learning_stats(**)
                 stats = engine.to_h
-                Legion::Logging.debug "[procedural_learning] stats total=#{stats[:total_skills]}"
+                log.debug "[procedural_learning] stats total=#{stats[:total_skills]}"
                 { success: true }.merge(stats)
               end
 

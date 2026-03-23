@@ -14,7 +14,7 @@ module Legion
                 rate_model.record_prediction(domain: domain, correct: correct)
                 rate = rate_model.rate_for(domain)
                 accuracy = rate_model.accuracy_for(domain)
-                Legion::Logging.debug "[learning_rate] prediction: domain=#{domain} correct=#{correct} rate=#{rate.round(3)} accuracy=#{accuracy.round(3)}"
+                log.debug "[learning_rate] prediction: domain=#{domain} correct=#{correct} rate=#{rate.round(3)} accuracy=#{accuracy.round(3)}"
                 {
                   success:  true,
                   domain:   domain,
@@ -27,14 +27,14 @@ module Legion
               def record_surprise(magnitude:, domain: :general, **)
                 rate_model.record_surprise(domain: domain, magnitude: magnitude)
                 rate = rate_model.rate_for(domain)
-                Legion::Logging.debug "[learning_rate] surprise: domain=#{domain} magnitude=#{magnitude.round(3)} rate=#{rate.round(3)}"
+                log.debug "[learning_rate] surprise: domain=#{domain} magnitude=#{magnitude.round(3)} rate=#{rate.round(3)}"
                 { success: true, domain: domain, rate: rate, label: rate_model.label_for(domain) }
               end
 
               def record_error(magnitude:, domain: :general, **)
                 rate_model.record_error(domain: domain, magnitude: magnitude)
                 rate = rate_model.rate_for(domain)
-                Legion::Logging.debug "[learning_rate] error: domain=#{domain} magnitude=#{magnitude.round(3)} rate=#{rate.round(3)}"
+                log.debug "[learning_rate] error: domain=#{domain} magnitude=#{magnitude.round(3)} rate=#{rate.round(3)}"
                 { success: true, domain: domain, rate: rate, label: rate_model.label_for(domain) }
               end
 
@@ -63,7 +63,7 @@ module Legion
               def update_learning_rate(**)
                 rate_model.decay
                 overall = rate_model.overall_rate
-                Legion::Logging.debug "[learning_rate] tick: domains=#{rate_model.domain_count} overall=#{overall.round(3)}"
+                log.debug "[learning_rate] tick: domains=#{rate_model.domain_count} overall=#{overall.round(3)}"
                 { success: true, domain_count: rate_model.domain_count, overall_rate: overall }
               end
 

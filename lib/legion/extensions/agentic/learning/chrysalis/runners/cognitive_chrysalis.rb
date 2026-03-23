@@ -22,7 +22,7 @@ module Legion
                   return { success: false, reason: :invalid_type, valid_types: Helpers::Constants::CHRYSALIS_TYPES }
                 end
 
-                Legion::Logging.debug "[cognitive_chrysalis] creating chrysalis type=#{type}"
+                log.debug "[cognitive_chrysalis] creating chrysalis type=#{type}"
                 engine.create_chrysalis(chrysalis_type: type, content: content)
               rescue ArgumentError => e
                 { success: false, reason: e.message }
@@ -30,7 +30,7 @@ module Legion
 
               def create_cocoon(environment: 'default', temperature: 0.5, humidity: 0.5, engine: nil, **)
                 engine ||= default_engine
-                Legion::Logging.debug "[cognitive_chrysalis] creating cocoon environment=#{environment}"
+                log.debug "[cognitive_chrysalis] creating cocoon environment=#{environment}"
                 engine.create_cocoon(environment: environment, temperature: temperature, humidity: humidity)
               rescue ArgumentError => e
                 { success: false, reason: e.message }
@@ -40,7 +40,7 @@ module Legion
                 return { success: false, reason: :missing_chrysalis_id } if chrysalis_id.nil?
 
                 engine ||= default_engine
-                Legion::Logging.debug "[cognitive_chrysalis] spinning chrysalis=#{chrysalis_id}"
+                log.debug "[cognitive_chrysalis] spinning chrysalis=#{chrysalis_id}"
                 engine.spin(chrysalis_id: chrysalis_id)
               rescue ArgumentError => e
                 { success: false, reason: e.message }
@@ -51,7 +51,7 @@ module Legion
                 return { success: false, reason: :missing_cocoon_id }    if cocoon_id.nil?
 
                 engine ||= default_engine
-                Legion::Logging.debug "[cognitive_chrysalis] enclosing chrysalis=#{chrysalis_id} in cocoon=#{cocoon_id}"
+                log.debug "[cognitive_chrysalis] enclosing chrysalis=#{chrysalis_id} in cocoon=#{cocoon_id}"
                 engine.enclose(chrysalis_id: chrysalis_id, cocoon_id: cocoon_id)
               rescue ArgumentError => e
                 { success: false, reason: e.message }
@@ -61,7 +61,7 @@ module Legion
                 return { success: false, reason: :missing_chrysalis_id } if chrysalis_id.nil?
 
                 engine ||= default_engine
-                Legion::Logging.debug "[cognitive_chrysalis] incubating chrysalis=#{chrysalis_id}"
+                log.debug "[cognitive_chrysalis] incubating chrysalis=#{chrysalis_id}"
                 engine.incubate(chrysalis_id: chrysalis_id)
               rescue ArgumentError => e
                 { success: false, reason: e.message }
@@ -69,7 +69,7 @@ module Legion
 
               def incubate_all(engine: nil, **)
                 engine ||= default_engine
-                Legion::Logging.debug '[cognitive_chrysalis] incubating all eligible chrysalises'
+                log.debug '[cognitive_chrysalis] incubating all eligible chrysalises'
                 engine.incubate_all!
               rescue ArgumentError => e
                 { success: false, reason: e.message }
@@ -79,7 +79,7 @@ module Legion
                 return { success: false, reason: :missing_chrysalis_id } if chrysalis_id.nil?
 
                 engine ||= default_engine
-                Legion::Logging.debug "[cognitive_chrysalis] emerging chrysalis=#{chrysalis_id} force=#{force}"
+                log.debug "[cognitive_chrysalis] emerging chrysalis=#{chrysalis_id} force=#{force}"
                 if force
                   engine.force_emerge(chrysalis_id: chrysalis_id)
                 else
@@ -93,7 +93,7 @@ module Legion
                 return { success: false, reason: :missing_cocoon_id } if cocoon_id.nil?
 
                 engine ||= default_engine
-                Legion::Logging.debug "[cognitive_chrysalis] disturbing cocoon=#{cocoon_id} force=#{force}"
+                log.debug "[cognitive_chrysalis] disturbing cocoon=#{cocoon_id} force=#{force}"
                 engine.disturb_cocoon(cocoon_id: cocoon_id, force: force)
               rescue ArgumentError => e
                 { success: false, reason: e.message }

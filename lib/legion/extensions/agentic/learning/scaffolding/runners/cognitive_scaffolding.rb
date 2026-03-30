@@ -7,8 +7,8 @@ module Legion
         module Scaffolding
           module Runners
             module CognitiveScaffolding
-              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers) &&
-                                                          Legion::Extensions::Helpers.const_defined?(:Lex)
+              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers, false) &&
+                                                          Legion::Extensions::Helpers.const_defined?(:Lex, false)
 
               def create_scaffold(skill_name:, domain:, competence: nil, **)
                 comp = competence || Helpers::Constants::DEFAULT_COMPETENCE

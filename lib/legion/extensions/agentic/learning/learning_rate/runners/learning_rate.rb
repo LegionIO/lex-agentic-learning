@@ -7,8 +7,8 @@ module Legion
         module LearningRate
           module Runners
             module LearningRate
-              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers) &&
-                                                          Legion::Extensions::Helpers.const_defined?(:Lex)
+              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers, false) &&
+                                                          Legion::Extensions::Helpers.const_defined?(:Lex, false)
 
               def record_prediction(correct:, domain: :general, **)
                 rate_model.record_prediction(domain: domain, correct: correct)

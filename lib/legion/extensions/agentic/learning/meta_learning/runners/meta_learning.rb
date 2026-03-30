@@ -7,8 +7,8 @@ module Legion
         module MetaLearning
           module Runners
             module MetaLearning
-              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers) &&
-                                                          Legion::Extensions::Helpers.const_defined?(:Lex)
+              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers, false) &&
+                                                          Legion::Extensions::Helpers.const_defined?(:Lex, false)
 
               def create_learning_domain(name:, learning_rate: Helpers::Constants::DEFAULT_LEARNING_RATE,
                                          related_domains: [], **)

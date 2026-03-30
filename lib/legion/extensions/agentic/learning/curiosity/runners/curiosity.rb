@@ -8,8 +8,8 @@ module Legion
           module Runners
             # Runner methods for the curiosity engine: gap detection, wonder lifecycle, agenda formation.
             module Curiosity
-              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers) &&
-                                                          Legion::Extensions::Helpers.const_defined?(:Lex)
+              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers, false) &&
+                                                          Legion::Extensions::Helpers.const_defined?(:Lex, false)
 
               def detect_gaps(prior_results: {}, **)
                 gaps = Helpers::GapDetector.detect(prior_results)

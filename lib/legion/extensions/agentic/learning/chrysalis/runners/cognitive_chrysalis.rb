@@ -11,7 +11,7 @@ module Legion
 
               begin
                 include Legion::Extensions::Helpers::Lex # rubocop:disable Layout/EmptyLinesAfterModuleInclusion
-              rescue StandardError
+              rescue StandardError => _e
                 nil
               end
 

@@ -7,8 +7,8 @@ module Legion
         module EpistemicCuriosity
           module Runners
             module EpistemicCuriosity
-              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers) &&
-                                                          Legion::Extensions::Helpers.const_defined?(:Lex)
+              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers, false) &&
+                                                          Legion::Extensions::Helpers.const_defined?(:Lex, false)
 
               def create_gap(question:, domain:, gap_type: :factual, urgency: Helpers::Constants::DEFAULT_URGENCY, **)
                 result = engine.create_gap(question: question, domain: domain, gap_type: gap_type, urgency: urgency)

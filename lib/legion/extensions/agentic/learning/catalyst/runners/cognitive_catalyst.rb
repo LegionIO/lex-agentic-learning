@@ -7,8 +7,8 @@ module Legion
         module Catalyst
           module Runners
             module CognitiveCatalyst
-              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers) &&
-                                                          Legion::Extensions::Helpers.const_defined?(:Lex)
+              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers, false) &&
+                                                          Legion::Extensions::Helpers.const_defined?(:Lex, false)
 
               def create_catalyst(catalyst_type:, domain:, potency: nil, specificity: nil, engine: nil, **)
                 e = engine || default_engine

@@ -7,8 +7,8 @@ module Legion
         module Anchoring
           module Runners
             module Anchoring
-              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers) &&
-                                                          Legion::Extensions::Helpers.const_defined?(:Lex)
+              include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers, false) &&
+                                                          Legion::Extensions::Helpers.const_defined?(:Lex, false)
 
               def record_anchor(value:, domain: :general, **)
                 anchor = anchor_store.add(value: value, domain: domain)

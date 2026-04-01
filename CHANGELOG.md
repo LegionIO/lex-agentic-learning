@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.5] - 2026-03-31
+
+### Added
+- OutcomeListener sub-module: subscription actor wiring task completion events to cognitive model updates (#4)
+- DomainExtractor helper: extracts learning domain from runner class names
+- LessonBuilder helper: generates structured situation-lesson pairs for Apollo persistence
+- MetaLearning, LearningRate, and Scaffolding models updated on each task outcome
+- Per-agent scoped lessons written to Apollo knowledge store
+- Settings toggles: outcome_listener, write_to_apollo, min_lesson_severity
+
 ## [0.1.4] - 2026-03-30
 
 ### Changed

@@ -15,6 +15,7 @@ require_relative 'learning/meta_learning'
 require_relative 'learning/preference_learning'
 require_relative 'learning/procedural'
 require_relative 'learning/anchoring'
+require_relative 'learning/outcome_listener'
 
 module Legion
   module Extensions

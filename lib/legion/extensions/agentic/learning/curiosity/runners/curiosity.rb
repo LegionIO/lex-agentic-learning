@@ -68,7 +68,7 @@ module Legion
               def form_agenda(**)
                 wonders = wonder_store.top_balanced(limit: 5)
                 log.debug "[curiosity] forming agenda from #{wonders.size} wonders"
-                { agenda_items: wonders.map { |w| format_agenda_item(w) }, source: :curiosity }
+                { agenda: wonders.map { |w| format_agenda_item(w) }, source: :curiosity }
               end
 
               def wonder_stats(**)

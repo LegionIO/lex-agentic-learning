@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- fix form_agenda return key from agenda_items to agenda to match GAIA phase wiring expectations
+
 ## [0.1.5] - 2026-03-31
 
 ### Added

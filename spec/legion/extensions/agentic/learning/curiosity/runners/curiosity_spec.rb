@@ -124,14 +124,14 @@ RSpec.describe Legion::Extensions::Agentic::Learning::Curiosity::Runners::Curios
     it 'converts top wonders to agenda items' do
       client.generate_wonder(question: 'Why?', domain: :test)
       result = client.form_agenda
-      expect(result[:agenda_items].size).to eq(1)
-      expect(result[:agenda_items].first[:type]).to eq(:curious)
-      expect(result[:agenda_items].first[:source]).to eq(:curiosity)
+      expect(result[:agenda].size).to eq(1)
+      expect(result[:agenda].first[:type]).to eq(:curious)
+      expect(result[:agenda].first[:source]).to eq(:curiosity)
     end
 
     it 'returns empty agenda with no wonders' do
       result = client.form_agenda
-      expect(result[:agenda_items]).to be_empty
+      expect(result[:agenda]).to be_empty
     end
   end
 

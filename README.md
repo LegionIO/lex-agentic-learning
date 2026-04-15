@@ -5,7 +5,7 @@ Domain consolidation gem for learning, adaptation, and knowledge acquisition. Bu
 ## Overview
 
 **Gem**: `lex-agentic-learning`
-**Version**: 0.1.1
+**Version**: 0.1.7
 **Namespace**: `Legion::Extensions::Agentic::Learning`
 
 ## Sub-Modules

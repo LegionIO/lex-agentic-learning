@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8] - 2026-04-22
+### Added
+- 3 new decay actors: Curiosity::Decay (300s), EpistemicCuriosity::Decay (300s), Habit::Decay (300s)
+- OutcomeListener documented in CLAUDE.md
+### Fixed
+- CognitiveChrysalis `include Helpers::Lex` rescue now logs error instead of swallowing silently
+
 ## [0.1.7] - 2026-04-15
 ### Changed
 - Set `mcp_tools?`, `mcp_tools_deferred?`, and `transport_required?` to `false` — internal cognitive pipeline extension

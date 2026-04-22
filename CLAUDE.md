@@ -28,11 +28,16 @@ Domain consolidation gem for learning, adaptation, and knowledge acquisition. Bu
 | `Learning::Fermentation` | `lex-cognitive-fermentation` | Time-based transformation of knowledge |
 | `Learning::Chrysalis` | `lex-cognitive-chrysalis` | Metamorphic state change — transformation through withdrawal |
 | `Learning::Catalyst` | `lex-cognitive-catalyst` | Accelerating cognitive transformation |
+| `Learning::OutcomeListener` | `lex-outcome-listener` | Outcome-gated learning — listens for task completions and updates meta-learning, learning rate, and scaffolding models |
 
 ## Actors
 
-- `Learning::Hebbian::Actors::Decay` — interval actor, decays Hebbian assembly connection strength
-- `Learning::PreferenceLearning::Actors::Decay` — interval actor, decays older preference observations
+- `Learning::Hebbian::Actor::Decay` — interval actor (60s), decays Hebbian assembly connection strength
+- `Learning::PreferenceLearning::Actor::Decay` — interval actor (300s), decays older preference observations
+- `Learning::Curiosity::Actor::Decay` — interval actor (300s), decays wonder salience via `decay_wonders`
+- `Learning::EpistemicCuriosity::Actor::Decay` — interval actor (300s), decays knowledge gaps via `decay_gaps`
+- `Learning::Habit::Actor::Decay` — interval actor (300s), prunes stale habits via `decay_habits`
+- `Learning::OutcomeListener::Actor::OutcomeListener` — subscription actor, receives task outcome events and triggers cross-model updates (meta-learning, learning rate, scaffolding); writes lessons to Apollo when enabled
 
 ## Tick Integration
 

@@ -5,6 +5,7 @@ require 'legion/extensions/agentic/learning/habit/helpers/constants'
 require 'legion/extensions/agentic/learning/habit/helpers/action_sequence'
 require 'legion/extensions/agentic/learning/habit/helpers/habit_store'
 require 'legion/extensions/agentic/learning/habit/runners/habit'
+require 'legion/extensions/agentic/learning/habit/actors/decay'
 require 'legion/extensions/agentic/learning/habit/client'
 
 module Legion

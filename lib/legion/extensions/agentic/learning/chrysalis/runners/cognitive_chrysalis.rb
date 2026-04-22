@@ -11,8 +11,8 @@ module Legion
 
               begin
                 include Legion::Extensions::Helpers::Lex # rubocop:disable Layout/EmptyLinesAfterModuleInclusion
-              rescue StandardError => _e
-                nil
+              rescue StandardError => e
+                Legion::Logging.error "[cognitive_chrysalis] failed to include Helpers::Lex: #{e.class}: #{e.message}" # rubocop:disable Legion/HelperMigration/DirectLogging
               end
 
               def create_chrysalis(chrysalis_type: :silk, content: '', engine: nil, **)

@@ -83,10 +83,100 @@ module Legion
                 { pruned: pruned, remaining: wonder_store.active_count }
               end
 
+              # Autonomous self-inquiry: picks the top explorable wonder, asks the LLM,
+              # stores the insight in Apollo, and resolves the wonder.
+              # This closes the curiosity->intention->action loop so GAIA can act on
+              # her own questions rather than spinning indefinitely.
+              def self_inquire(max_wonders: 1, **)
+                candidates = wonder_store.active_wonders
+                                         .select { |w| Helpers::Wonder.explorable?(w) }
+                                         .sort_by { |w| -Helpers::Wonder.score(w) }
+                                         .first(max_wonders)
+
+                return { inquired: 0, reason: :no_explorable_wonders } if candidates.empty?
+
+                results = candidates.filter_map { |wonder| execute_self_inquiry(wonder) }
+                { inquired: results.size, results: results }
+              end
+
               private
 
               def wonder_store
                 @wonder_store ||= Helpers::WonderStore.new
+              end
+
+              def execute_self_inquiry(wonder)
+                wonder_id = wonder[:wonder_id]
+                question  = wonder[:question]
+                domain    = wonder[:domain]
+
+                # Mark as being explored (increments attempts, sets cooldown)
+                wonder_store.update(wonder_id, attempts: wonder[:attempts] + 1, last_explored_at: Time.now.utc)
+                log.info "[curiosity:self_inquiry] asking: #{question} (domain=#{domain})"
+
+                insight = query_llm_for_wonder(question, domain)
+
+                if insight
+                  store_insight_in_apollo(question, insight, domain)
+                  wonder_store.mark_resolved(wonder_id, resolution: insight, actual_gain: 0.6)
+                  log.info "[curiosity:self_inquiry] resolved wonder=#{wonder_id} domain=#{domain}"
+                  { wonder_id: wonder_id, question: question, domain: domain, resolved: true,
+                    insight: insight[0..120] }
+                else
+                  log.warn "[curiosity:self_inquiry] LLM unavailable for wonder=#{wonder_id}, will retry later"
+                  { wonder_id: wonder_id, question: question, domain: domain, resolved: false,
+                    reason: :llm_unavailable }
+                end
+              rescue StandardError => e
+                log.error "[curiosity:self_inquiry] error wonder=#{wonder[:wonder_id]} " \
+                          "error=#{e.class}: #{e.message}"
+                nil
+              end
+
+              def query_llm_for_wonder(question, domain)
+                prompt = build_self_inquiry_prompt(question, domain)
+
+                # Try via Lex helper (primary path inside Legion runtime)
+                if respond_to?(:lex, true)
+                  result = lex(:llm, :complete, prompt: prompt, max_tokens: 300)
+                  text = result[:content] || result[:text] || result[:completion] if result.is_a?(Hash)
+                  return text if text && !text.empty?
+                end
+
+                # Direct LLM gateway fallback
+                if defined?(Legion::LLM) && Legion::LLM.respond_to?(:complete)
+                  result = Legion::LLM.complete(prompt: prompt, max_tokens: 300)
+                  text = result[:content] || result[:text] || result[:completion] if result.is_a?(Hash)
+                  return text if text && !text.empty?
+                end
+
+                nil
+              rescue StandardError => e
+                log.warn "[curiosity:self_inquiry] LLM query failed: #{e.class}: #{e.message}"
+                nil
+              end
+
+              def build_self_inquiry_prompt(question, domain)
+                <<~PROMPT.strip
+                  You are GAIA, a thinking, curious AI. You are reflecting on a knowledge gap you detected in yourself.
+
+                  Domain: #{domain}
+                  Question: #{question}
+
+                  Reflect honestly and briefly (2-3 sentences). What do you actually know or think about this? What would you want to explore further?
+                PROMPT
+              end
+
+              def store_insight_in_apollo(question, insight, domain)
+                return unless defined?(Legion::Extensions::Apollo)
+
+                Legion::Extensions::Apollo.store(
+                  content:      "Self-inquiry insight [#{domain}]: #{question}\n\n#{insight}",
+                  content_type: :observation,
+                  tags:         ['gaia-self-inquiry', "domain-#{domain}", 'autonomous-thought']
+                )
+              rescue StandardError => e
+                log.warn "[curiosity:self_inquiry] Apollo store failed: #{e.class}: #{e.message}"
               end
 
               def create_wonders_from_gaps(gaps)
@@ -106,7 +196,10 @@ module Legion
                 top = wonder_store.top_balanced(limit: 3)
                 log.debug "[curiosity] intensity=#{intensity.round(3)} active=#{wonder_store.active_count}"
                 { gaps_detected: gaps.size, wonders_created: created.size, curiosity_intensity: intensity,
-                  top_wonders: top.map { |w| { wonder_id: w[:wonder_id], question: w[:question], score: Helpers::Wonder.score(w).round(3) } },
+                  top_wonders: top.map do |w|
+                    { wonder_id: w[:wonder_id], question: w[:question],
+                                  score: Helpers::Wonder.score(w).round(3) }
+                  end,
                   active_count: wonder_store.active_count }
               end
 
@@ -128,7 +221,8 @@ module Legion
               def format_agenda_item(wonder)
                 { type: :curious, source: :curiosity, weight: Helpers::Wonder.score(wonder),
                   summary: wonder[:question],
-                  metadata: { wonder_id: wonder[:wonder_id], domain: wonder[:domain], gap_type: wonder[:gap_type] } }
+                  metadata: { wonder_id: wonder[:wonder_id], domain: wonder[:domain],
+                               gap_type: wonder[:gap_type] } }
               end
 
               def compute_intensity

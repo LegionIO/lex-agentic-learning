@@ -5,6 +5,7 @@ require 'legion/extensions/agentic/learning/epistemic_curiosity/helpers/constant
 require 'legion/extensions/agentic/learning/epistemic_curiosity/helpers/knowledge_gap'
 require 'legion/extensions/agentic/learning/epistemic_curiosity/helpers/curiosity_engine'
 require 'legion/extensions/agentic/learning/epistemic_curiosity/runners/epistemic_curiosity'
+require 'legion/extensions/agentic/learning/epistemic_curiosity/actors/decay'
 require 'legion/extensions/agentic/learning/epistemic_curiosity/client'
 
 module Legion

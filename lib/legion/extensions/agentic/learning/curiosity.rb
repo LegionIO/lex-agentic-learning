@@ -6,6 +6,7 @@ require 'legion/extensions/agentic/learning/curiosity/helpers/wonder'
 require 'legion/extensions/agentic/learning/curiosity/helpers/wonder_store'
 require 'legion/extensions/agentic/learning/curiosity/helpers/gap_detector'
 require 'legion/extensions/agentic/learning/curiosity/runners/curiosity'
+require 'legion/extensions/agentic/learning/curiosity/actors/decay'
 require 'legion/extensions/agentic/learning/curiosity/client'
 
 module Legion

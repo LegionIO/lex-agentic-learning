@@ -9,10 +9,14 @@ module Legion
             module CognitiveChrysalis
               extend self
 
+              def log
+                Legion::Logging
+              end
+
               begin
                 include Legion::Extensions::Helpers::Lex # rubocop:disable Layout/EmptyLinesAfterModuleInclusion
-              rescue StandardError => _e
-                nil
+              rescue StandardError => e
+                log.error "[cognitive_chrysalis] failed to include Helpers::Lex: #{e.class}: #{e.message}"
               end
 
               def create_chrysalis(chrysalis_type: :silk, content: '', engine: nil, **)

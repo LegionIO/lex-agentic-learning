@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.10] - 2026-04-28
+### Fixed
+- Curiosity self-inquiry now prefers the current `Legion::LLM.ask` router before legacy helper fallbacks, preventing old `lex(:llm, :complete)` failures from hiding native LLM availability.
+
 ## [0.1.9] - 2026-04-28
 ### Fixed
 - Curiosity self-inquiry now uses the current `Legion::LLM.ask` API before falling back to legacy `Legion::LLM.complete`, preserving compatibility with the LLM routing uplift.

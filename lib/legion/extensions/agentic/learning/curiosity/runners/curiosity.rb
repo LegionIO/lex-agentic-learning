@@ -136,19 +136,19 @@ module Legion
               def query_llm_for_wonder(question, domain)
                 prompt = build_self_inquiry_prompt(question, domain)
 
-                # Try via Lex helper (primary path inside Legion runtime)
-                if respond_to?(:lex, true)
-                  result = lex(:llm, :complete, prompt: prompt, max_tokens: 300)
-                  text = extract_llm_text(result)
-                  return text if text && !text.empty?
-                end
-
-                # Direct LLM fallback for current legion-llm; complete is kept for older installs.
+                # Prefer the current legion-llm router; legacy helper paths are fallbacks only.
                 if defined?(Legion::LLM) && Legion::LLM.respond_to?(:ask)
                   result = Legion::LLM.ask(message: prompt) # rubocop:disable Legion/HelperMigration/DirectLlm
                   text = extract_llm_text(result)
                   return text if text && !text.empty?
-                elsif defined?(Legion::LLM) && Legion::LLM.respond_to?(:complete)
+                end
+
+                if respond_to?(:lex, true)
+                  text = query_legacy_lex_llm(prompt)
+                  return text if text && !text.empty?
+                end
+
+                if defined?(Legion::LLM) && Legion::LLM.respond_to?(:complete)
                   result = Legion::LLM.complete(prompt: prompt, max_tokens: 300)
                   text = extract_llm_text(result)
                   return text if text && !text.empty?
@@ -157,6 +157,14 @@ module Legion
                 nil
               rescue StandardError => e
                 log.warn "[curiosity:self_inquiry] LLM query failed: #{e.class}: #{e.message}"
+                nil
+              end
+
+              def query_legacy_lex_llm(prompt)
+                result = lex(:llm, :complete, prompt: prompt, max_tokens: 300)
+                extract_llm_text(result)
+              rescue StandardError => e
+                log.warn "[curiosity:self_inquiry] legacy lex LLM query failed: #{e.class}: #{e.message}"
                 nil
               end
 

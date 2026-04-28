@@ -176,6 +176,22 @@ RSpec.describe Legion::Extensions::Agentic::Learning::Curiosity::Runners::Curios
       expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to eq('useful insight')
     end
 
+    it 'does not let legacy lex complete failures hide current Legion::LLM.ask' do
+      allow(client).to receive(:respond_to?).with(:lex, true).and_return(true)
+      allow(client).to receive(:lex).and_raise(StandardError, 'legacy unavailable')
+
+      llm = Module.new do
+        def self.ask(message:)
+          raise 'missing prompt' if message.to_s.empty?
+
+          { response: 'ask survived' }
+        end
+      end
+      stub_const('Legion::LLM', llm)
+
+      expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to eq('ask survived')
+    end
+
     it 'keeps legacy Legion::LLM.complete fallback for older installs' do
       llm = Module.new do
         def self.complete(prompt:, max_tokens:)

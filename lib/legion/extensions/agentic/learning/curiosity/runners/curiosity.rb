@@ -139,14 +139,18 @@ module Legion
                 # Try via Lex helper (primary path inside Legion runtime)
                 if respond_to?(:lex, true)
                   result = lex(:llm, :complete, prompt: prompt, max_tokens: 300)
-                  text = result[:content] || result[:text] || result[:completion] if result.is_a?(Hash)
+                  text = extract_llm_text(result)
                   return text if text && !text.empty?
                 end
 
-                # Direct LLM gateway fallback
-                if defined?(Legion::LLM) && Legion::LLM.respond_to?(:complete)
+                # Direct LLM fallback for current legion-llm; complete is kept for older installs.
+                if defined?(Legion::LLM) && Legion::LLM.respond_to?(:ask)
+                  result = Legion::LLM.ask(message: prompt) # rubocop:disable Legion/HelperMigration/DirectLlm
+                  text = extract_llm_text(result)
+                  return text if text && !text.empty?
+                elsif defined?(Legion::LLM) && Legion::LLM.respond_to?(:complete)
                   result = Legion::LLM.complete(prompt: prompt, max_tokens: 300)
-                  text = result[:content] || result[:text] || result[:completion] if result.is_a?(Hash)
+                  text = extract_llm_text(result)
                   return text if text && !text.empty?
                 end
 
@@ -154,6 +158,14 @@ module Legion
               rescue StandardError => e
                 log.warn "[curiosity:self_inquiry] LLM query failed: #{e.class}: #{e.message}"
                 nil
+              end
+
+              def extract_llm_text(result)
+                return result.strip if result.is_a?(String)
+                return nil unless result.is_a?(Hash)
+
+                text = result[:response] || result[:content] || result[:text] || result[:completion]
+                text&.to_s&.strip
               end
 
               def build_self_inquiry_prompt(question, domain)

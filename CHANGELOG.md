@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.9] - 2026-04-28
+### Fixed
+- Curiosity self-inquiry now uses the current `Legion::LLM.ask` API before falling back to legacy `Legion::LLM.complete`, preserving compatibility with the LLM routing uplift.
+
 ## [0.1.8] - 2026-04-22
 ### Added
 - 3 new decay actors: Curiosity::Decay (300s), EpistemicCuriosity::Decay (300s), Habit::Decay (300s)

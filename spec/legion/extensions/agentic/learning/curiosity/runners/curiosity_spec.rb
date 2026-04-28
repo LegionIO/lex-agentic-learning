@@ -156,4 +156,37 @@ RSpec.describe Legion::Extensions::Agentic::Learning::Curiosity::Runners::Curios
       expect(result[:pruned]).to eq(1)
     end
   end
+
+  describe '#query_llm_for_wonder' do
+    before do
+      allow(client).to receive(:respond_to?).and_call_original
+      allow(client).to receive(:respond_to?).with(:lex, true).and_return(false)
+    end
+
+    it 'uses Legion::LLM.ask response hashes for current legion-llm' do
+      llm = Module.new do
+        def self.ask(message:)
+          raise 'missing prompt' if message.to_s.empty?
+
+          { response: '  useful insight  ' }
+        end
+      end
+      stub_const('Legion::LLM', llm)
+
+      expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to eq('useful insight')
+    end
+
+    it 'keeps legacy Legion::LLM.complete fallback for older installs' do
+      llm = Module.new do
+        def self.complete(prompt:, max_tokens:)
+          raise 'missing prompt' if prompt.to_s.empty? || max_tokens != 300
+
+          { content: 'legacy insight' }
+        end
+      end
+      stub_const('Legion::LLM', llm)
+
+      expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to eq('legacy insight')
+    end
+  end
 end

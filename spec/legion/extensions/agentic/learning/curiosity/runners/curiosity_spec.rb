@@ -163,12 +163,12 @@ RSpec.describe Legion::Extensions::Agentic::Learning::Curiosity::Runners::Curios
       allow(client).to receive(:respond_to?).with(:lex, true).and_return(false)
     end
 
-    it 'uses Legion::LLM.ask response hashes for current legion-llm' do
+    it 'uses Legion::LLM.chat response hashes for current legion-llm' do
       llm = Module.new do
-        def self.ask(message:)
+        def self.chat(message:, **)
           raise 'missing prompt' if message.to_s.empty?
 
-          { response: '  useful insight  ' }
+          { content: '  useful insight  ' }
         end
       end
       stub_const('Legion::LLM', llm)
@@ -176,33 +176,27 @@ RSpec.describe Legion::Extensions::Agentic::Learning::Curiosity::Runners::Curios
       expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to eq('useful insight')
     end
 
-    it 'does not let legacy lex complete failures hide current Legion::LLM.ask' do
+    it 'does not call legacy LLM paths when native chat succeeds' do
       allow(client).to receive(:respond_to?).with(:lex, true).and_return(true)
-      allow(client).to receive(:lex).and_raise(StandardError, 'legacy unavailable')
+      expect(client).not_to receive(:lex)
 
       llm = Module.new do
-        def self.ask(message:)
+        def self.chat(message:, **)
           raise 'missing prompt' if message.to_s.empty?
 
-          { response: 'ask survived' }
+          { content: 'chat survived' }
         end
       end
       stub_const('Legion::LLM', llm)
 
-      expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to eq('ask survived')
+      expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to eq('chat survived')
     end
 
-    it 'keeps legacy Legion::LLM.complete fallback for older installs' do
-      llm = Module.new do
-        def self.complete(prompt:, max_tokens:)
-          raise 'missing prompt' if prompt.to_s.empty? || max_tokens != 300
-
-          { content: 'legacy insight' }
-        end
-      end
+    it 'returns nil when native chat is unavailable' do
+      llm = Module.new
       stub_const('Legion::LLM', llm)
 
-      expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to eq('legacy insight')
+      expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to be_nil
     end
   end
 end

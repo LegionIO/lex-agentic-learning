@@ -136,20 +136,15 @@ module Legion
               def query_llm_for_wonder(question, domain)
                 prompt = build_self_inquiry_prompt(question, domain)
 
-                # Prefer the current legion-llm router; legacy helper paths are fallbacks only.
-                if defined?(Legion::LLM) && Legion::LLM.respond_to?(:ask)
-                  result = Legion::LLM.ask(message: prompt) # rubocop:disable Legion/HelperMigration/DirectLlm
-                  text = extract_llm_text(result)
-                  return text if text && !text.empty?
-                end
-
-                if respond_to?(:lex, true)
-                  text = query_legacy_lex_llm(prompt)
-                  return text if text && !text.empty?
-                end
-
-                if defined?(Legion::LLM) && Legion::LLM.respond_to?(:complete)
-                  result = Legion::LLM.complete(prompt: prompt, max_tokens: 300)
+                if defined?(Legion::LLM) && Legion::LLM.respond_to?(:chat)
+                  result = Legion::LLM.chat( # rubocop:disable Legion/HelperMigration/DirectLlm
+                    message: prompt,
+                    caller:  {
+                      extension: 'lex-agentic-learning',
+                      operation: 'curiosity',
+                      phase:     'self_inquiry'
+                    }
+                  )
                   text = extract_llm_text(result)
                   return text if text && !text.empty?
                 end
@@ -160,19 +155,13 @@ module Legion
                 nil
               end
 
-              def query_legacy_lex_llm(prompt)
-                result = lex(:llm, :complete, prompt: prompt, max_tokens: 300)
-                extract_llm_text(result)
-              rescue StandardError => e
-                log.warn "[curiosity:self_inquiry] legacy lex LLM query failed: #{e.class}: #{e.message}"
-                nil
-              end
-
               def extract_llm_text(result)
                 return result.strip if result.is_a?(String)
+                return result.content.to_s.strip if result.respond_to?(:content)
                 return nil unless result.is_a?(Hash)
 
-                text = result[:response] || result[:content] || result[:text] || result[:completion]
+                text = result[:response] || result[:content] || result[:text] || result[:completion] ||
+                       result.dig(:message, :content) || result.dig('message', 'content')
                 text&.to_s&.strip
               end
 

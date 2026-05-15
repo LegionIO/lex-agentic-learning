@@ -115,4 +115,64 @@ RSpec.describe Legion::Extensions::Agentic::Learning::OutcomeListener::Runners::
       expect(result[:domain]).to eq('unknown')
     end
   end
+
+  describe '#write_apollo_lesson' do
+    let(:lesson) do
+      { runner_class: 'Http::Get', function: 'fetch', status: 'task.completed',
+        domain: 'http', success: true, confidence: 0.8 }
+    end
+
+    before do
+      mock_apollo = Module.new do
+        def self.ingest(**)
+          { success: true }
+        end
+      end
+      stub_const('Legion::Apollo', mock_apollo)
+    end
+
+    it 'passes access_scope: private to Legion::Apollo.ingest' do
+      allow(Legion::Apollo).to receive(:ingest).and_return({ success: true })
+      client.send(:write_apollo_lesson, lesson, 'agent-1')
+      expect(Legion::Apollo).to have_received(:ingest).with(
+        hash_including(access_scope: 'private')
+      )
+    end
+
+    it 'includes source_agent in the ingest call' do
+      allow(Legion::Apollo).to receive(:ingest).and_return({ success: true })
+      client.send(:write_apollo_lesson, lesson, 'agent-99')
+      expect(Legion::Apollo).to have_received(:ingest).with(
+        hash_including(source_agent: 'agent-99')
+      )
+    end
+
+    it 'tags the entry with task_outcome and domain' do
+      allow(Legion::Apollo).to receive(:ingest).and_return({ success: true })
+      client.send(:write_apollo_lesson, lesson, 'agent-1')
+      expect(Legion::Apollo).to have_received(:ingest).with(
+        hash_including(tags: array_including('task_outcome', 'http'))
+      )
+    end
+
+    it 'is a no-op when Legion::Apollo is not defined' do
+      hide_const('Legion::Apollo')
+      expect { client.send(:write_apollo_lesson, lesson, 'agent-1') }.not_to raise_error
+    end
+
+    it 'does not inject process identity as the owner' do
+      stub_const('Legion::Identity::Process', Module.new do
+        extend self
+
+        define_method(:identity_hash) do
+          { canonical_name: 'daemon', db_principal_id: 999, db_identity_id: 888 }
+        end
+      end)
+      allow(Legion::Apollo).to receive(:ingest).and_return({ success: true })
+      client.send(:write_apollo_lesson, lesson, 'agent-1')
+      expect(Legion::Apollo).to have_received(:ingest).with(
+        hash_including(identity_principal_id: nil)
+      )
+    end
+  end
 end

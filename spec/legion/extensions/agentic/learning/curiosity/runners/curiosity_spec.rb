@@ -205,4 +205,58 @@ RSpec.describe Legion::Extensions::Agentic::Learning::Curiosity::Runners::Curios
       expect(client.send(:query_llm_for_wonder, 'why?', :curiosity)).to eq('legacy insight')
     end
   end
+
+  describe '#store_insight_in_apollo' do
+    before do
+      mock_apollo = Module.new do
+        def self.started?
+          true
+        end
+
+        def self.ingest(**)
+          { success: true }
+        end
+      end
+      stub_const('Legion::Apollo', mock_apollo)
+    end
+
+    it 'passes access_scope: private to Legion::Apollo.ingest' do
+      allow(Legion::Apollo).to receive(:ingest).and_return({ success: true })
+      client.send(:store_insight_in_apollo, 'How does Consul ACL work?', 'found it', 'consul')
+      expect(Legion::Apollo).to have_received(:ingest).with(
+        hash_including(access_scope: 'private')
+      )
+    end
+
+    it 'includes the domain and question in the ingested content' do
+      allow(Legion::Apollo).to receive(:ingest).and_return({ success: true })
+      client.send(:store_insight_in_apollo, 'What is raft?', 'distributed consensus', 'distributed_systems')
+      expect(Legion::Apollo).to have_received(:ingest).with(
+        hash_including(
+          content: a_string_including('distributed_systems'),
+          tags:    array_including('gaia-self-inquiry', 'domain-distributed_systems')
+        )
+      )
+    end
+
+    it 'is a no-op when Legion::Apollo is not defined' do
+      hide_const('Legion::Apollo')
+      expect { client.send(:store_insight_in_apollo, 'q?', 'insight', 'test') }.not_to raise_error
+    end
+
+    it 'does not inject process identity as the owner' do
+      stub_const('Legion::Identity::Process', Module.new do
+        extend self
+
+        define_method(:identity_hash) do
+          { canonical_name: 'daemon', db_principal_id: 999, db_identity_id: 888 }
+        end
+      end)
+      allow(Legion::Apollo).to receive(:ingest).and_return({ success: true })
+      client.send(:store_insight_in_apollo, 'q?', 'insight', 'test')
+      expect(Legion::Apollo).to have_received(:ingest).with(
+        hash_including(identity_principal_id: nil)
+      )
+    end
+  end
 end

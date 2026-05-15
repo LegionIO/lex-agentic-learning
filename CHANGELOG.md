@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.11] - 2026-05-07
+### Fixed
+- Curiosity self-inquiry now uses native `Legion::LLM.chat` response hashes directly and avoids obsolete legacy LLM fallback calls after native chat succeeds.
+
 ## [0.1.10] - 2026-04-28
 ### Fixed
 - Curiosity self-inquiry now prefers the current `Legion::LLM.ask` router before legacy helper fallbacks, preventing old `lex(:llm, :complete)` failures from hiding native LLM availability.

@@ -10,8 +10,6 @@ module Legion
             module Curiosity
               include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers, false) &&
                                                           Legion::Extensions::Helpers.const_defined?(:Lex, false)
-              include Legion::Extensions::Helpers::Knowledge if Legion::Extensions.const_defined?(:Helpers, false) &&
-                                                                Legion::Extensions::Helpers.const_defined?(:Knowledge, false)
 
               def detect_gaps(prior_results: {}, **)
                 gaps = Helpers::GapDetector.detect(prior_results)

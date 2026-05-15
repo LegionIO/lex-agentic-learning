@@ -85,9 +85,11 @@ module Legion
 
                 Legion::Apollo.ingest( # rubocop:disable Legion/HelperMigration/DirectKnowledge
                   content:               json_generate(lesson),
-                  tags:                  ['task_outcome', lesson[:domain]],
+                  tags:                  ['task_outcome', lesson[:domain]].compact,
                   source_agent:          source_agent,
                   access_scope:          'private',
+                  content_type:          'task_outcome_lesson',
+                  knowledge_domain:      'learning',
                   identity_principal_id: nil
                 )
               rescue StandardError => e

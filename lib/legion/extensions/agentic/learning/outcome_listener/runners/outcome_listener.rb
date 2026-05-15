@@ -83,11 +83,15 @@ module Legion
               def write_apollo_lesson(lesson, source_agent)
                 return unless defined?(Legion::Apollo)
 
-                ingest_knowledge(content:          json_generate(lesson),
-                                 content_type:     'task_outcome_lesson',
-                                 tags:             ['task_outcome', lesson[:domain]],
-                                 source_agent:     source_agent,
-                                 knowledge_domain: 'learning')
+                Legion::Apollo.ingest( # rubocop:disable Legion/HelperMigration/DirectKnowledge
+                  content:               json_generate(lesson),
+                  tags:                  ['task_outcome', lesson[:domain]].compact,
+                  source_agent:          source_agent,
+                  access_scope:          'private',
+                  content_type:          'task_outcome_lesson',
+                  knowledge_domain:      'learning',
+                  identity_principal_id: nil
+                )
               rescue StandardError => e
                 log.warn "[outcome_listener] apollo write failed: #{e.message}"
               end

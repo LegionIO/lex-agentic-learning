@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.12] - 2026-05-15
+### Fixed
+- Curiosity `store_insight_in_apollo` now calls `Legion::Apollo.ingest` directly (replacing `Legion::Extensions::Apollo.store` which was a non-existent method and silently failed on every call); adds `access_scope: 'private'` and `identity_principal_id: nil`.
+- OutcomeListener `write_apollo_lesson` now calls `Legion::Apollo.ingest` directly (replacing `ingest_knowledge(content: ...)` which was a dormant `ArgumentError` in Ruby 3.x due to missing positional arg); adds `access_scope: 'private'` and `identity_principal_id: nil`.
+
 ## [0.1.11] - 2026-05-07
 ### Fixed
 - Curiosity self-inquiry now uses native `Legion::LLM.chat` response hashes directly and avoids obsolete legacy LLM fallback calls after native chat succeeds.

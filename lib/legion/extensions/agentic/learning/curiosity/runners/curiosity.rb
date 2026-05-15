@@ -177,15 +177,16 @@ module Legion
               end
 
               def store_insight_in_apollo(question, insight, domain)
-                return unless defined?(Legion::Extensions::Apollo)
+                return unless defined?(Legion::Apollo)
 
-                Legion::Extensions::Apollo.store(
-                  content:      "Self-inquiry insight [#{domain}]: #{question}\n\n#{insight}",
-                  content_type: :observation,
-                  tags:         ['gaia-self-inquiry', "domain-#{domain}", 'autonomous-thought']
+                Legion::Apollo.ingest( # rubocop:disable Legion/HelperMigration/DirectKnowledge
+                  content:               "Self-inquiry insight [#{domain}]: #{question}\n\n#{insight}",
+                  tags:                  ['gaia-self-inquiry', "domain-#{domain}", 'autonomous-thought'],
+                  access_scope:          'private',
+                  identity_principal_id: nil
                 )
               rescue StandardError => e
-                log.warn "[curiosity:self_inquiry] Apollo store failed: #{e.class}: #{e.message}"
+                log.warn "[curiosity:self_inquiry] Apollo ingest failed: #{e.class}: #{e.message}"
               end
 
               def create_wonders_from_gaps(gaps)

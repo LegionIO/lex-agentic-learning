@@ -59,7 +59,6 @@ module Legion
                   lesson = Helpers::LessonBuilder.build(
                     runner_class: runner_class_name,
                     function:     payload[:function],
-                    status:       status,
                     domain:       domain,
                     success:      success,
                     source_agent: source_agent

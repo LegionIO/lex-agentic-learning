@@ -150,6 +150,32 @@ RSpec.describe Legion::Extensions::Agentic::Learning::OutcomeListener::Runners::
       expect(Legion::Extensions::Agentic::Learning::OutcomeListener::Client.meta_client.meta_learning_stats[:episode_count]).to eq(1)
     end
 
+    it 'reinforces concurrent redeliveries only once per shared state lifecycle' do
+      owner = Legion::Extensions::Agentic::Learning::OutcomeListener::Client
+      payload = completed_payload.merge(message_id: 'concurrent-delivery')
+
+      2.times do
+        ready = Queue.new
+        start = Queue.new
+        workers = Array.new(8) do
+          Thread.new do
+            listener = owner.new
+            ready << true
+            start.pop
+            listener.process_outcome(**payload)
+          end
+        end
+        workers.size.times { ready.pop }
+        workers.size.times { start << true }
+        results = workers.map(&:value)
+
+        expect(results.count { |result| result[:reason] == :duplicate_outcome }).to eq(7)
+        expect(results).to all(include(success: true, outcome: true))
+        expect(owner.meta_client.meta_learning_stats[:episode_count]).to eq(1)
+        owner.reset!
+      end
+    end
+
     it 'keeps different agents and a later terminal status distinct' do
       payload = completed_payload.merge(task_id: 42, message_id: 'delivery-1')
       client.process_outcome(**payload)

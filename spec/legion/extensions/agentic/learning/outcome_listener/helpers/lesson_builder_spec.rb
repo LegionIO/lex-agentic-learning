@@ -9,7 +9,6 @@ RSpec.describe Legion::Extensions::Agentic::Learning::OutcomeListener::Helpers::
       described_class.build(
         runner_class: 'Legion::Extensions::Http::Runners::Get',
         function:     'fetch',
-        status:       'task.completed',
         domain:       'http',
         success:      true,
         source_agent: 'agent-1'
@@ -20,7 +19,6 @@ RSpec.describe Legion::Extensions::Agentic::Learning::OutcomeListener::Helpers::
       described_class.build(
         runner_class: 'Legion::Extensions::Consul::Runners::Kv',
         function:     'put',
-        status:       'task.failed',
         domain:       'consul',
         success:      false,
         source_agent: 'agent-2'

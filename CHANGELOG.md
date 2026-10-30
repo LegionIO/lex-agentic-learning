@@ -3,7 +3,7 @@
 ## [0.1.13] - 2026-10-29
 ### Fixed
 - Accept framework keyword/module outcome dispatch and reject unknown statuses or missing task attribution without updating learning models.
-- Deduplicate explicit transport message identities across listener clients using bounded process-local history; repeated task IDs remain distinct executions.
+- Deduplicate explicit transport message identities across concurrent listener clients using bounded process-local history and a stable, eagerly initialized lock shared with state resets; repeated task IDs remain distinct executions.
 - Report model update failures and identify task lessons as technical execution evidence, not demonstrated human acceptance.
 - Fail closed when Apollo publication settings cannot be read. Event subscription activation and durable deduplication are unchanged.
 

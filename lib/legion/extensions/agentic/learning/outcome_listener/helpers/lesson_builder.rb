@@ -11,7 +11,7 @@ module Legion
 
               module_function
 
-              def build(runner_class:, domain:, success:, status: nil, function: nil, source_agent: nil) # rubocop:disable Lint/UnusedMethodArgument
+              def build(runner_class:, domain:, success:, function: nil, source_agent: nil)
                 {
                   situation:    build_situation(runner_class, function),
                   outcome:      success ? :success : :failure,

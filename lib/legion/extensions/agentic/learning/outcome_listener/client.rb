@@ -16,8 +16,12 @@ module Legion
           class Client
             include Runners::OutcomeListener
 
-            # rubocop:disable ThreadSafety/ClassInstanceVariable
+            @outcome_mutex = Mutex.new
+
+            # rubocop:disable-next ThreadSafety/ClassInstanceVariable
             class << self
+              attr_reader :outcome_mutex
+
               def meta_client
                 @meta_client ||= Legion::Extensions::Agentic::Learning::MetaLearning::Client.new
               end
@@ -34,23 +38,20 @@ module Legion
                 @domain_map ||= {}
               end
 
-              def outcome_mutex
-                @outcome_mutex ||= Mutex.new
-              end
-
               def processed_outcomes
                 @processed_outcomes ||= {}
               end
 
               def reset!
-                @meta_client = nil
-                @scaffolding_client = nil
-                @learning_rate_client = nil
-                @domain_map = nil
-                @processed_outcomes = nil
+                outcome_mutex.synchronize do
+                  @meta_client = nil
+                  @scaffolding_client = nil
+                  @learning_rate_client = nil
+                  @domain_map = nil
+                  @processed_outcomes = nil
+                end
               end
             end
-            # rubocop:enable ThreadSafety/ClassInstanceVariable
           end
         end
       end

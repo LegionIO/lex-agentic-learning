@@ -109,10 +109,85 @@ RSpec.describe Legion::Extensions::Agentic::Learning::OutcomeListener::Runners::
       expect(episodes.proficiency).to be > 0.0
     end
 
-    it 'handles empty payload gracefully' do
+    it 'ignores missing outcomes without creating learning state' do
       result = client.process_outcome({})
+      expect(result).to include(success: false, skipped: true, outcome: nil)
+      expect(Legion::Extensions::Agentic::Learning::OutcomeListener::Client.meta_client.meta_learning_stats[:episode_count]).to eq(0)
+    end
+
+    it 'consumes keyword-dispatched technical failures from the current runner' do
+      result = client.process_outcome(**failed_payload, status: 'task.exception')
+      expect(result).to include(success: true, outcome: false, evidence: :technical_execution)
+      expect(result[:updates][:meta_learning]).to include(domain_name: 'consul', success: false)
+    end
+
+    it 'ignores nonterminal and unrecognized statuses without changing existing learning' do
+      client.process_outcome(completed_payload)
+      owner = Legion::Extensions::Agentic::Learning::OutcomeListener::Client
+      before = owner.meta_client.learning_domain_ranking
+
+      [nil, 'task.queued', 'transformer.succeeded', 'unexpected'].each do |status|
+        result = client.process_outcome(**completed_payload, status: status)
+        expect(result).to include(success: false, skipped: true, reason: :unrecognized_status, outcome: nil)
+      end
+
+      expect(owner.meta_client.learning_domain_ranking).to eq(before)
+      expect(owner.meta_client.meta_learning_stats[:episode_count]).to eq(1)
+    end
+
+    it 'does not attribute context-free transport status updates to an unknown domain' do
+      result = client.process_outcome(task_id: 42, status: 'task.completed')
+      expect(result).to include(success: false, reason: :missing_task_context)
+      expect(Legion::Extensions::Agentic::Learning::OutcomeListener::Client.meta_client.meta_learning_stats[:domain_count]).to eq(0)
+    end
+
+    it 'does not reinforce a redelivered identified outcome twice across clients' do
+      payload = completed_payload.merge(task_id: 42, message_id: 'delivery-1')
+      client.process_outcome(**payload)
+      other = Legion::Extensions::Agentic::Learning::OutcomeListener::Client.new
+      result = other.process_outcome(**payload)
+      expect(result).to include(skipped: true, reason: :duplicate_outcome)
+      expect(Legion::Extensions::Agentic::Learning::OutcomeListener::Client.meta_client.meta_learning_stats[:episode_count]).to eq(1)
+    end
+
+    it 'keeps different agents and a later terminal status distinct' do
+      payload = completed_payload.merge(task_id: 42, message_id: 'delivery-1')
+      client.process_outcome(**payload)
+      client.process_outcome(**payload, source_agent: 'agent-2')
+      client.process_outcome(**payload, status: 'task.exception', message_id: 'delivery-2')
+      owner = Legion::Extensions::Agentic::Learning::OutcomeListener::Client
+      domain = owner.meta_client.learning_domain_ranking[:ranking].first
+      expect(domain).to include(successes: 2, failures: 1)
+    end
+
+    it 'does not treat repeated task IDs as delivery identities' do
+      2.times { client.process_outcome(**completed_payload, task_id: 42) }
+      owner = Legion::Extensions::Agentic::Learning::OutcomeListener::Client
+      expect(owner.meta_client.meta_learning_stats[:episode_count]).to eq(2)
+    end
+
+    it 'updates the same scaffold decision when invoked as a framework runner module' do
+      owner = Legion::Extensions::Agentic::Learning::OutcomeListener::Client
+      scaffold = owner.scaffolding_client.create_scaffold(skill_name: 'http_requests', domain: 'http')
+      id = scaffold[:scaffold][:id]
+      before = owner.scaffolding_client.recommend_scaffolded_task(scaffold_id: id)
+      runner = Module.new
+      runner.extend(described_class)
+      result = runner.process_outcome(**completed_payload)
+
       expect(result[:success]).to be true
-      expect(result[:domain]).to eq('unknown')
+      after = owner.scaffolding_client.recommend_scaffolded_task(scaffold_id: id)
+      expect(after[:recommendation][:difficulty]).to be > before[:recommendation][:difficulty]
+      expect(owner.meta_client.meta_learning_stats[:episode_count]).to eq(1)
+    end
+
+    it 'fails closed when the lesson publication setting cannot be read' do
+      allow(Legion::Settings).to receive(:dig).with(:agentic, :learning, :write_to_apollo).and_raise(IOError, 'unavailable')
+      apollo = Module.new
+      stub_const('Legion::Apollo', apollo)
+      expect(apollo).not_to receive(:ingest)
+
+      expect(client.process_outcome(**completed_payload)[:success]).to be true
     end
   end
 

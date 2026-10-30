@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.13] - 2026-10-29
+### Fixed
+- Accept framework keyword/module outcome dispatch and reject unknown statuses or missing task attribution without updating learning models.
+- Deduplicate explicit transport message identities across listener clients using bounded process-local history; repeated task IDs remain distinct executions.
+- Report model update failures and identify task lessons as technical execution evidence, not demonstrated human acceptance.
+- Fail closed when Apollo publication settings cannot be read. Event subscription activation and durable deduplication are unchanged.
+
 ## [0.1.12] - 2026-05-15
 ### Fixed
 - Curiosity `store_insight_in_apollo` now calls `Legion::Apollo.ingest` directly (replacing `Legion::Extensions::Apollo.store` which was a non-existent method and silently failed on every call); adds `access_scope: 'private'` and `identity_principal_id: nil`.

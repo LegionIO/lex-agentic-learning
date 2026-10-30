@@ -54,14 +54,6 @@ RSpec.describe Legion::Extensions::Agentic::Learning::OutcomeListener::Helpers::
     it 'includes recorded_at timestamp' do
       expect(success_lesson[:recorded_at]).to be_a(Time)
     end
-
-    it 'builds lesson text for success' do
-      expect(success_lesson[:lesson]).to include('completed successfully')
-    end
-
-    it 'builds lesson text for failure' do
-      expect(failure_lesson[:lesson]).to include('failed')
-    end
   end
 
   describe '.build_situation' do

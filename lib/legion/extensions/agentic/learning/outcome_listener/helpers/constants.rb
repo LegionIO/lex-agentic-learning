@@ -10,6 +10,8 @@ module Legion
               DEFAULT_MIN_LESSON_SEVERITY = 0.3
               COMPLETED_STATUS = 'task.completed'
               FAILED_STATUS = 'task.failed'
+              EXCEPTION_STATUS = 'task.exception'
+              MAX_OUTCOME_HISTORY = 1000
               DEFAULT_DIFFICULTY = 0.5
               DEFAULT_CONFIDENCE_SUCCESS = 0.7
               DEFAULT_CONFIDENCE_FAILURE = 0.5

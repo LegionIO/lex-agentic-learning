@@ -14,7 +14,7 @@ module Legion
               end
 
               begin
-                include Legion::Extensions::Helpers::Lex # rubocop:disable Layout/EmptyLinesAfterModuleInclusion
+                include Legion::Extensions::Helpers::Lex
               rescue StandardError => e
                 log.error "[cognitive_chrysalis] failed to include Helpers::Lex: #{e.class}: #{e.message}"
               end

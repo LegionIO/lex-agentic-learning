@@ -10,7 +10,40 @@ module Legion
               include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers, false) &&
                                                           Legion::Extensions::Helpers.const_defined?(:Lex, false)
 
-              def process_outcome(payload = {}, **)
+              def process_outcome(payload = {}, **options)
+                payload = payload.merge(options)
+                status = payload[:status].to_s
+                unless [Helpers::Constants::COMPLETED_STATUS, Helpers::Constants::FAILED_STATUS,
+                        Helpers::Constants::EXCEPTION_STATUS].include?(status)
+                  return { success: false, skipped: true, reason: :unrecognized_status, outcome: nil }
+                end
+                if payload[:runner_class].to_s.strip.empty? || payload[:function].to_s.strip.empty?
+                  return { success: false, skipped: true, reason: :missing_task_context, outcome: nil }
+                end
+
+                owner = Legion::Extensions::Agentic::Learning::OutcomeListener::Client
+                owner.outcome_mutex.synchronize do
+                  process_unique_outcome(payload, owner)
+                end
+              end
+
+              private
+
+              def process_unique_outcome(payload, owner)
+                message_id = payload[:message_id]
+                key = [payload[:source_agent] || payload[:agent_id], message_id]
+                tracked = !message_id.to_s.strip.empty?
+                return owner.processed_outcomes[key].merge(skipped: true, reason: :duplicate_outcome) if tracked && owner.processed_outcomes.key?(key)
+
+                result = process_task_outcome(payload)
+                if tracked
+                  owner.processed_outcomes[key] = result
+                  owner.processed_outcomes.shift while owner.processed_outcomes.size > Helpers::Constants::MAX_OUTCOME_HISTORY
+                end
+                result
+              end
+
+              def process_task_outcome(payload)
                 runner_class_name = payload[:runner_class].to_s
                 status = payload[:status].to_s
                 domain = Helpers::DomainExtractor.extract(runner_class_name)
@@ -26,7 +59,6 @@ module Legion
                   lesson = Helpers::LessonBuilder.build(
                     runner_class: runner_class_name,
                     function:     payload[:function],
-                    status:       status,
                     domain:       domain,
                     success:      success,
                     source_agent: source_agent
@@ -36,13 +68,12 @@ module Legion
                 end
 
                 log.debug "[outcome_listener] domain=#{domain} success=#{success} updates=#{updates.keys}"
-                { success: true, domain: domain, outcome: success, updates: updates }
+                { success: updates.values.none? { |update| update.key?(:error) },
+                  domain: domain, outcome: success, evidence: :technical_execution, updates: updates }
               end
 
-              private
-
               def update_meta_learning_model(domain, success)
-                meta = self.class.meta_client
+                meta = Legion::Extensions::Agentic::Learning::OutcomeListener::Client.meta_client
                 domain_id = resolve_domain_id(meta, domain)
                 meta.record_learning_episode(domain_id: domain_id, success: success)
               rescue StandardError => e
@@ -51,7 +82,7 @@ module Legion
               end
 
               def update_learning_rate_model(domain, success)
-                lr = self.class.learning_rate_client
+                lr = Legion::Extensions::Agentic::Learning::OutcomeListener::Client.learning_rate_client
                 lr.record_prediction(correct: success, domain: domain.to_sym)
               rescue StandardError => e
                 log.warn "[outcome_listener] learning_rate update failed: #{e.message}"
@@ -59,7 +90,7 @@ module Legion
               end
 
               def update_scaffolding_model(domain, success, payload)
-                sc = self.class.scaffolding_client
+                sc = Legion::Extensions::Agentic::Learning::OutcomeListener::Client.scaffolding_client
                 scaffolds = sc.engine.by_domain(domain: domain)
                 return { skipped: true, reason: :no_scaffold } if scaffolds.empty?
 
@@ -72,7 +103,7 @@ module Legion
               end
 
               def resolve_domain_id(meta, domain)
-                map = self.class.domain_map
+                map = Legion::Extensions::Agentic::Learning::OutcomeListener::Client.domain_map
                 return map[domain] if map.key?(domain)
 
                 result = meta.create_learning_domain(name: domain)
@@ -102,7 +133,7 @@ module Legion
                 Legion::Settings.dig(:agentic, :learning, :write_to_apollo) != false
               rescue StandardError => e
                 log.warn "[outcome_listener] write_to_apollo? check failed: #{e.message}"
-                true
+                false
               end
 
               def min_lesson_severity

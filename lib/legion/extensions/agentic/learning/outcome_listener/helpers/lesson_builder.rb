@@ -11,10 +11,11 @@ module Legion
 
               module_function
 
-              def build(runner_class:, domain:, success:, status: nil, function: nil, source_agent: nil) # rubocop:disable Lint/UnusedMethodArgument
+              def build(runner_class:, domain:, success:, function: nil, source_agent: nil)
                 {
                   situation:    build_situation(runner_class, function),
                   outcome:      success ? :success : :failure,
+                  evidence:     :technical_execution,
                   lesson:       build_lesson(domain, success),
                   domain:       domain,
                   confidence:   success ? DEFAULT_CONFIDENCE_SUCCESS : DEFAULT_CONFIDENCE_FAILURE,
@@ -31,9 +32,9 @@ module Legion
 
               def build_lesson(domain, success)
                 if success
-                  "Task in domain '#{domain}' completed successfully"
+                  "Task execution in domain '#{domain}' completed without an exception"
                 else
-                  "Task in domain '#{domain}' failed — review for corrective action"
+                  "Task execution in domain '#{domain}' failed — review for corrective action"
                 end
               end
             end
